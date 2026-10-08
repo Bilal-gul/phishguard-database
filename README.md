@@ -4,7 +4,7 @@ Relational database design for **PhishGuard**, a phishing URL analysis system. I
 
 ## ER Diagram
 
-![PhishGuard Database ER Diagram]([docs/Phishguard_db_diagram.png](https://github.com/Bilal-gul/phishguard-database/blob/main/e-r%20diagram/Phishguard_db_diagram.png))
+![PhishGuard Database ER Diagram](https://github.com/Bilal-gul/phishguard-database/blob/main/e-r%20diagram/Phishguard_db_diagram.png)
 
 ## Schema
 
