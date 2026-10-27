@@ -1,135 +1,228 @@
-# PhishGuard Database
+# PhishGuard
 
-Relational database design for **PhishGuard**, a phishing URL analysis system. It stores users, submitted URLs, domains, ML models, predictions, suspicious alerts, and activity history while keeping ML inference outside the database.
+**Machine learning–based phishing URL detection with a relational database backend.**
 
-## ER Diagram
+PhishGuard is a cybersecurity project that analyzes URLs to identify potential phishing threats using machine learning. It combines URL feature extraction, model inference, a web interface, and a Microsoft SQL Server database to analyze URLs and maintain prediction history.
 
-![PhishGuard Database ER Diagram](https://github.com/Bilal-gul/phishguard-database/blob/main/e-r%20diagram/Phishguard_db_diagram.png)
+The project also demonstrates how an ML-powered security application can be supported by a relational database with integrity constraints, stored procedures, triggers, views, and activity logging.
 
-## Schema
+## Key Features
+
+- **Phishing Detection:** Analyze submitted URLs using a trained machine learning model.
+- **URL Feature Extraction:** Extract URL-based features for model inference.
+- **Web Interface:** Interact with the application through its frontend.
+- **Analysis History:** Store submitted URLs and their prediction results.
+- **User Management:** Maintain user accounts, login sessions, and activity records.
+- **Suspicious Activity Alerts:** Generate database alerts for configured suspicious prediction conditions.
+- **Database Integrity:** Enforce relationships and data validity using relational constraints.
+- **Model Management:** Maintain model metadata and the features associated with each model.
+
+## How It Works
+
+```text
+URL Submission
+      |
+      v
+URL Feature Extraction
+      |
+      v
+Machine Learning Inference
+      |
+      v
+Prediction Result
+      |
+      v
+SQL Server Database
+      |
+      +-- Analysis History
+      +-- Suspicious Alerts
+      +-- Activity Logs
+```
+
+Feature extraction and ML inference are performed by the application. The database stores and manages the resulting records; it does not execute the ML model itself.
+
+## Tech Stack
+
+| Component | Technology |
+|---|---|
+| Backend | Python, FastAPI |
+| Frontend | HTML, CSS, JavaScript |
+| Database | Microsoft SQL Server |
+| Database Management | SQL Server Management Studio (SSMS) |
+| Machine Learning | Python, trained model, URL feature extraction |
+| Containerization | Docker, Docker Compose |
+
+## Database Design
+
+The database manages user accounts, submitted URLs, domains, model predictions, suspicious-case alerts, and activity history through a relational schema.
+
+### Entity-Relationship Diagram
+
+<p align="center">
+  <img src="e-r%20diagram/Phishguard_db_diagram.png" alt="PhishGuard Database ER Diagram" width="800">
+</p>
+
+<p align="center">
+  <em>PhishGuard relational database schema.</em>
+</p>
+
+### Database Tables
 
 | Table | Purpose |
 |---|---|
-| `users` | User accounts and account status |
-| `sessions` | Login sessions |
-| `domains` | Domain information and Tranco rank |
-| `user_urls` | URLs submitted by users |
-| `models` | ML model registry |
-| `features_dictionary` | Definitions of ML features |
-| `model_features` | Model ↔ feature many-to-many mapping |
-| `predictions` | Model prediction results |
-| `suspicious_analyses` | Alerts for suspicious predictions |
-| `activity_logs` | User activity audit trail |
+| `users` | Stores user accounts and account status |
+| `sessions` | Stores login session records |
+| `domains` | Stores domain information and Tranco rank |
+| `user_urls` | Records URLs submitted for analysis |
+| `models` | Maintains machine learning model metadata |
+| `features_dictionary` | Defines the features used by ML models |
+| `model_features` | Maps models to their features using a many-to-many relationship |
+| `predictions` | Stores model prediction results |
+| `suspicious_analyses` | Records alerts associated with suspicious predictions |
+| `activity_logs` | Maintains user activity and audit history |
 
-### Main relationships
+### Relationships and Constraints
 
-```text
-users 1 ─── N sessions
-users 1 ─── N user_urls
-users 1 ─── N activity_logs
+The schema uses primary keys and foreign keys to maintain relationships between users, URLs, domains, models, predictions, and alerts.
 
-domains 1 ─── N user_urls
+Additional constraints include:
 
-models M ─── N features_dictionary
-          via model_features
+- Unique usernames and email addresses.
+- Unique domain names and feature names.
+- A composite primary key on `model_features` (`model_id`, `feature_id`).
+- Prediction labels restricted to `0` or `1`.
+- Prediction probabilities restricted to the range `[0, 1]`.
+- Activity types restricted to supported actions such as `REGISTER`, `LOGIN`, `URL_ANALYSIS`, and `LOGOUT`.
 
-user_urls 1 ─── N predictions
-models    1 ─── N predictions
-predictions 1 ─── N suspicious_analyses
+**Prediction labels:** `0` represents phishing, while `1` represents a legitimate URL.
+
+### Database Objects
+
+**View — `analysis_history`**
+
+Combines URL submissions, domain information, predictions, and model records into a convenient analysis-history view.
+
+**Triggers**
+
+- **URL analysis logging:** Automatically creates a `URL_ANALYSIS` activity entry when a URL submission is inserted.
+- **Suspicious prediction detection:** Creates an alert when a prediction is labeled as phishing and the associated domain meets the configured Tranco rank condition (`rank <= 10,000`).
+
+**Stored Procedure — `record_url_analysis`**
+
+Coordinates the database-side steps of a URL analysis, including ensuring the domain record exists and creating the URL and prediction records.
+
+Feature extraction and machine learning inference remain the responsibility of the application.
+
+**Data Integrity and Transactions**
+
+Primary keys, foreign keys, unique constraints, and check constraints help preserve data consistency. Transactional operations can prevent failed analyses from leaving incomplete database records.
+
+## Getting Started
+
+### Prerequisites
+
+- Git
+- Python and pip
+- Docker and Docker Compose
+- Microsoft SQL Server
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/Bilal-gul/phishguard-database.git
+cd phishguard-database
 ```
 
-## Constraints
+### 2. Configure Environment Variables
 
-**Primary keys:** Every table has a PK. `model_features` uses a composite PK: `(model_id, feature_id)`.
+Navigate to the application directory:
 
-**Unique:**
-- `users.username`
-- `users.email`
-- `domains.domain_name`
-- `features_dictionary.feature_name`
-
-**Checks:**
-- `predictions.predicted_label` → `0` or `1`
-- `predictions.probability` → `0 <= probability <= 1`
-- `activity_logs.action` → `REGISTER`, `LOGIN`, `URL_ANALYSIS`, `LOGOUT`
-
-**Foreign keys:**
-
-```text
-sessions.user_id              → users.user_id
-user_urls.user_id             → users.user_id
-user_urls.domain_id           → domains.domain_id
-model_features.model_id      → models.model_id
-model_features.feature_id    → features_dictionary.feature_id
-predictions.url_id            → user_urls.url_id
-predictions.model_id          → models.model_id
-suspicious_analyses.prediction_id → predictions.prediction_id
-activity_logs.user_id         → users.user_id
+```powershell
+cd PhishGuard
 ```
 
-## Database Features
+Create your local `.env` file from the example:
 
-### Indexes
-
-Indexes should be added to frequently queried foreign keys and history-related columns to improve query performance.
-
-### View — `analysis_history`
-
-Combines `user_urls`, `domains`, `predictions`, and `models` to provide a convenient URL analysis history without repeating the same joins.
-
-### Triggers
-
-**1. URL analysis logging**  
-When a row is inserted into `user_urls`, an automatic `URL_ANALYSIS` entry is added to `activity_logs`.
-
-**2. Suspicious prediction detection**  
-When a prediction is inserted, an alert is created when:
-
-```text
-predicted_label = 0
-AND domain.tranco_rank <= 10000
+```powershell
+Copy-Item .env.example .env
 ```
 
-Example reason:
+Edit `.env` and configure the required database connection settings for your environment.
 
-> Phishing prediction on a Top-10000 Tranco domain
+> **Security:** Never commit your `.env` file, database passwords, API keys, or other secrets to GitHub. Use `.env.example` to document the required configuration without exposing real credentials.
 
-### Stored Procedure — `record_url_analysis()`
+### 3. Start the Application
 
-Handles the database side of a URL analysis in one transaction:
+From the `PhishGuard` directory, build and start the Docker services:
 
-```text
-Ensure/create domain
-      ↓
-Create user_urls record
-      ↓
-Create prediction record
+```bash
+docker compose up -d --build
 ```
 
-Feature extraction and ML inference are performed by the application, not by the procedure.
+Check the container status:
 
-### Transactions
-
-URL-analysis operations should be executed transactionally so that a failed operation does not leave incomplete or inconsistent records.
-
-## Project Architecture
-
-```text
-Application / Web UI
-        │
-        ├── URL & Feature Extraction
-        ├── ML Model Inference
-        │
-        ▼
-   PhishGuard Database
-        ├── Users & Sessions
-        ├── URLs & Domains
-        ├── Models & Features
-        ├── Predictions
-        ├── Alerts
-        └── Activity Logs
+```bash
+docker compose ps
 ```
 
-## Goal
+View application logs if needed:
 
-The database provides a structured and reliable backend for PhishGuard, supporting **analysis history, ML model management, suspicious-case detection, auditing, and data integrity**.
+```bash
+docker compose logs -f
+```
+
+Make sure SQL Server is running and that the connection settings in `.env` match your environment. The available services and their configuration are defined in `PhishGuard/docker-compose.yml`.
+
+## Repository Structure
+
+```text
+phishguard-database/
+├── README.md
+├── e-r diagram/
+│   └── Phishguard_db_diagram.png
+├── sql/
+│   ├── Phishguard_create_database.sql
+│   ├── Phishguard_create_table.sql
+│   ├── Phishguard_procedure.sql
+│   ├── Phishguard_triggers.sql
+│   └── Phishguard_view.sql
+└── PhishGuard/
+    ├── backend/
+    ├── frontend/
+    ├── data/
+    │   └── best_model.pkl
+    ├── main.py
+    ├── predict.py
+    ├── feature_extractor.py
+    ├── requirements.txt
+    ├── Dockerfile
+    ├── docker-compose.yml
+    ├── .dockerignore
+    └── .env.example
+```
+
+## SQL Scripts
+
+The `sql/` directory contains the scripts used to define and configure the database.
+
+| Script | Purpose |
+|---|---|
+| `Phishguard_create_database.sql` | Creates the database |
+| `Phishguard_create_table.sql` | Defines tables and relational constraints |
+| `Phishguard_procedure.sql` | Defines stored procedures |
+| `Phishguard_triggers.sql` | Defines database triggers |
+| `Phishguard_view.sql` | Defines database views |
+
+Execute the scripts against your SQL Server instance in the appropriate order, beginning with database creation and table definitions.
+
+## Project Goals
+
+PhishGuard brings together machine learning, web application development, and relational database design in a practical cybersecurity project.
+
+The application focuses on phishing URL detection, while the database provides structured analysis history, model metadata, suspicious-case tracking, activity auditing, and data integrity.
+
+---
+
+**Author:** [Bilal-gul](https://github.com/Bilal-gul)
+
+**Repository:** [phishguard-database](https://github.com/Bilal-gul/phishguard-database)
