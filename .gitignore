@@ -58,8 +58,9 @@ preprocessing.py
 # DATASETS & INTERMEDIATE ARTIFACTS
 # Keep only the trained model required by predict.py
 # ==========================================
-data/*
-!data/best_model.pkl
+**/data/*
+!PhishGuard/data/best_model.pkl
+!**/data/README.md
 
 # ==========================================
 # GENERATED MODEL ARTIFACTS
