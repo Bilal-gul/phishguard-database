@@ -1,0 +1,72 @@
+
+# ==========================================
+# PYTHON & VIRTUAL ENVIRONMENTS
+# ==========================================
+__pycache__/
+*.py[cod]
+*.pyd
+.venv/
+venv/
+env/
+ENV/
+
+# ==========================================
+# SECRETS & ENVIRONMENT VARIABLES
+# ==========================================
+.env
+.env.*
+!.env.example
+.phishguard_session_secret
+*.pem
+*.key
+
+# ==========================================
+# TEMPORARY & DEBUG FILES
+# ==========================================
+*.log
+*.tmp
+*.bak
+auth_debug.txt
+requirements-local-freeze.txt
+
+# ==========================================
+# EDITORS & OPERATING SYSTEM
+# ==========================================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ==========================================
+# JUPYTER
+# ==========================================
+.ipynb_checkpoints/
+
+# ==========================================
+# DEVELOPMENT / TRAINING SCRIPTS
+# Not needed to run the web application
+# ==========================================
+check_users.py
+data_audit_and_clean.ipynb
+db.py
+fit.py
+model.py
+model_pipeline.py
+preprocessing.py
+
+# ==========================================
+# DATASETS & INTERMEDIATE ARTIFACTS
+# Keep only the trained model required by predict.py
+# ==========================================
+data/*
+!data/best_model.pkl
+
+# ==========================================
+# GENERATED MODEL ARTIFACTS
+# ==========================================
+*.onnx
+*.pt
+*.pth
+*.h5
+*.keras
+

@@ -1,0 +1,36 @@
+
+# Git
+.git/
+.gitignore
+
+# Python and virtual environment
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Secrets
+.env
+.env.*
+!.env.example
+.phishguard_session_secret
+auth_debug.txt
+
+# Development-only files
+.vscode/
+.idea/
+*.ipynb
+check_users.py
+fit.py
+model.py
+model_pipeline.py
+preprocessing.py
+
+# Large datasets: include only the trained model
+data/*
+!data/best_model.pkl
+
+
+# Archive files
+*.zip

@@ -1,0 +1,25 @@
+
+services:
+  phishguard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: phishguard-app
+
+    ports:
+      - "8000:8000"
+
+    environment:
+      PHISHGUARD_SQL_SERVER: "${PHISHGUARD_SQL_SERVER:-host.docker.internal,1433}"
+      PHISHGUARD_SQL_DATABASE: "${PHISHGUARD_SQL_DATABASE:-PhishGuardDB}"
+      PHISHGUARD_SQL_AUTH: "${PHISHGUARD_SQL_AUTH:-sql}"
+      PHISHGUARD_SQL_USER: "${PHISHGUARD_SQL_USER:?Set SQL user in .env}"
+      PHISHGUARD_SQL_PASSWORD: "${PHISHGUARD_SQL_PASSWORD:?Set SQL password in .env}"
+      PHISHGUARD_SESSION_SECRET: "${PHISHGUARD_SESSION_SECRET:?Set session secret in .env}"
+      PHISHGUARD_COOKIE_SECURE: "${PHISHGUARD_COOKIE_SECURE:-false}"
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    restart: unless-stopped

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f5f2">
+  <title>PhishGuard — URL Güvenliği</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div id="auth-screen" class="auth-screen">
+    <div class="auth-side">
+      <a class="brand" href="#" aria-label="PhishGuard"><span class="brand-mark">P</span><span>PhishGuard</span></a>
+      <div class="auth-pitch">
+        <div class="eyebrow"><span class="eyebrow-dot"></span> URL GÜVENLİK PLATFORMU</div>
+        <h1>Bir bağlantıya<br>güvenmeden <span>önce.</span></h1>
+        <p>Şüpheli bağlantıları makine öğrenmesiyle incele. Analizlerini ve güvenlik geçmişini tek bir yerde tut.</p>
+        <div class="security-illustration" aria-hidden="true">
+          <div class="illustration-card card-back"></div>
+          <div class="illustration-card card-front">
+            <div class="illustration-top"><span class="mini-shield">✓</span><span class="illustration-line"></span><span class="illustration-dot"></span></div>
+            <div class="fake-url">https://example.com/login</div>
+            <div class="scan-line"><span></span></div>
+            <div class="illustration-status"><span></span> URL analizi hazır</div>
+          </div>
+          <div class="illustration-bubble bubble-one">ML</div>
+          <div class="illustration-bubble bubble-two">✓</div>
+        </div>
+      </div>
+      <div class="auth-side-footer"><span>© 2026 PhishGuard</span><span>Güvenli analiz. Bilinçli karar.</span></div>
+    </div>
+    <main class="auth-main">
+      <button class="theme-toggle auth-theme-toggle" type="button" aria-label="Koyu temaya geç" title="Temayı değiştir"><span class="theme-icon" aria-hidden="true">☾</span><span class="theme-label">Koyu tema</span></button>
+      <div class="auth-mobile-brand"><span class="brand-mark">P</span><span>PhishGuard</span></div>
+      <section class="auth-card">
+        <div class="auth-heading">
+          <span class="auth-kicker" id="auth-kicker">PHISHGUARD HESABI</span>
+          <h2 id="auth-title">Tekrar hoş geldin.</h2>
+          <p id="auth-subtitle">Hesabına giriş yaparak analizlerine devam et.</p>
+        </div>
+        <div class="auth-tabs" role="tablist" aria-label="Hesap işlemi">
+          <button type="button" class="auth-tab active" id="login-tab" role="tab" aria-selected="true">Giriş yap</button>
+          <button type="button" class="auth-tab" id="register-tab" role="tab" aria-selected="false">Hesap oluştur</button>
+        </div>
+        <form id="auth-form">
+          <div class="field" id="username-field" hidden>
+            <label for="auth-username">Kullanıcı adı</label>
+            <input id="auth-username" name="username" type="text" autocomplete="username" minlength="3" maxlength="50" placeholder="kullaniciadi">
+          </div>
+          <div class="field" id="email-field">
+            <label for="auth-email">E-posta adresi</label>
+            <input id="auth-email" name="email" type="email" autocomplete="email" placeholder="ornek@eposta.com" required>
+          </div>
+          <div class="field">
+            <div class="field-label-row"><label for="auth-password">Şifre</label><span class="field-hint">En az 8 karakter önerilir</span></div>
+            <input id="auth-password" name="password" type="password" autocomplete="current-password" minlength="8" placeholder="Şifreni gir" required>
+          </div>
+          <div class="field" id="confirm-field" hidden>
+            <label for="auth-confirm">Şifreyi tekrar gir</label>
+            <input id="auth-confirm" name="confirm" type="password" autocomplete="new-password" minlength="8" placeholder="Şifreni tekrar gir">
+          </div>
+          <div class="auth-error" id="auth-error" role="alert" hidden></div>
+          <button class="primary-button auth-submit" id="auth-submit" type="submit"><span id="auth-submit-text">Giriş yap</span><span>→</span></button>
+        </form>
+        <div class="auth-divider"><span></span><small>GÜVENLİK ÖNCELİKLİ</small><span></span></div>
+        <p class="auth-privacy"><span>◈</span> Analiz etmeden önce bağlantıları açmayız. URL yalnızca analiz için gönderilir.</p>
+        <p class="auth-switch-copy" id="auth-switch-copy">Henüz hesabın yok mu? <button type="button" id="switch-register">Hesap oluştur</button></p>
+      </section>
+      <div class="auth-main-footer">PhishGuard · Machine Learning Security</div>
+    </main>
+  </div>
+
+  <div id="app-screen" class="app-shell" hidden>
+    <aside class="sidebar">
+      <a class="brand" href="#overview"><span class="brand-mark">P</span><span>PhishGuard</span></a>
+      <div class="workspace-label">ÇALIŞMA ALANI</div>
+      <nav class="nav">
+        <button class="nav-item active" data-section="overview"><span>▦</span> Genel bakış</button>
+        <button class="nav-item" data-section="analyze"><span>⌕</span> URL analizi</button>
+        <button class="nav-item" data-section="history"><span>◷</span> Analiz geçmişi</button>
+        <button class="nav-item" data-section="alerts"><span>⚑</span> Güvenlik uyarıları <span class="nav-count" id="sidebar-alert-count">0</span></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="connection-card"><span class="connection-dot"></span><div><b>Sistem durumu</b><small id="system-status-text">Bağlantı kontrol ediliyor</small></div></div>
+        <button class="logout-button" id="logout-button"><span>↪</span> Oturumu kapat</button>
+        <div class="sidebar-foot">PHISHGUARD <span>v1.0</span></div>
+      </div>
+    </aside>
+    <main class="main-content">
+      <header class="topbar">
+        <div><div class="crumb-small">PHISHGUARD / <span id="breadcrumb-current">GENEL BAKIŞ</span></div><h2 id="page-title">Genel bakış</h2></div>
+        <div class="topbar-right"><button class="theme-toggle app-theme-toggle" type="button" aria-label="Koyu temaya geç" title="Temayı değiştir"><span class="theme-icon" aria-hidden="true">☾</span><span class="theme-label">Koyu tema</span></button><span class="status-chip"><span></span> SİSTEM AKTİF</span><div class="user-avatar" id="user-avatar">PG</div></div>
+      </header>
+      <section class="page-section" id="section-overview">
+        <div class="welcome-banner"><div><span class="eyebrow">GÜVENLİK MERKEZİ</span><h1>Merhaba, <span id="welcome-user">kullanıcı</span>.</h1><p>Bağlantıları açmadan önce kontrol et, riskleri erken fark et.</p></div><div class="banner-mark">P<span>G</span></div></div>
+        <div class="stats-grid">
+          <article class="stat-card"><div class="stat-label">Toplam analiz <span class="stat-icon">↗</span></div><div class="stat-value" id="stat-total">—</div><small>Kaydedilen URL analizleri</small></article>
+          <article class="stat-card"><div class="stat-label">Phishing tespiti <span class="stat-icon red">!</span></div><div class="stat-value" id="stat-phishing">—</div><small>Şüpheli olarak sınıflandırılan</small></article>
+          <article class="stat-card"><div class="stat-label">Meşru bağlantı <span class="stat-icon green">✓</span></div><div class="stat-value" id="stat-legitimate">—</div><small>Legitimate olarak sınıflandırılan</small></article>
+          <article class="stat-card"><div class="stat-label">Açık uyarı <span class="stat-icon amber">⚑</span></div><div class="stat-value" id="stat-alerts">—</div><small>İnceleme bekleyen kayıtlar</small></article>
+        </div>
+        <div class="dashboard-grid">
+          <article class="surface analyze-surface" id="analyze">
+            <div class="surface-heading"><div><span class="section-index">01 / URL ANALİZİ</span><h3>Bağlantıyı kontrol et</h3><p>Analiz etmek istediğin URL'yi gir.</p></div><span class="heading-icon">⌕</span></div>
+            <form id="analyze-form">
+              <label for="url-input">URL adresi</label>
+              <div class="url-entry"><span>↗</span><input id="url-input" name="url" type="text" placeholder="https://example.com/login" required maxlength="2048"><button class="primary-button" id="analyze-button" type="submit"><span class="button-label">Analiz et</span><span>→</span></button></div>
+              <p class="helper-text">ⓘ URL analiz edilir; bu işlem bağlantıyı ziyaret etmez.</p>
+              <div class="form-error" id="form-error" role="alert" hidden></div>
+            </form>
+            <div class="result-card" id="result-card" hidden aria-live="polite">
+              <div class="result-heading"><div><span class="section-index">ANALİZ TAMAMLANDI</span><h4 id="result-title">Sonuç</h4></div><span id="result-badge" class="result-badge">—</span></div>
+              <p id="result-url" class="result-url"></p>
+              <div class="probability"><div><span>Phishing olasılığı</span><b id="result-phishing">—</b></div><div class="meter"><span id="phishing-bar" class="meter-danger"></span></div></div>
+              <div class="probability"><div><span>Legitimate olasılığı</span><b id="result-legitimate">—</b></div><div class="meter"><span id="legitimate-bar" class="meter-safe"></span></div></div>
+              <div class="result-meta"><span id="result-domain"></span><span id="result-confidence"></span></div>
+            </div>
+          </article>
+          <article class="surface model-surface">
+            <div class="surface-heading"><div><span class="section-index">02 / SİSTEM</span><h3>Analiz motoru</h3><p>URL özelliklerinden model tahminine.</p></div><span class="heading-icon muted">✳</span></div>
+            <div class="process-list"><div class="process-step"><span class="process-number">01</span><div><b>Özellik çıkarımı</b><small>URL yapısı ve alan adı sinyalleri</small></div><span class="step-status">Hazır</span></div><div class="process-step"><span class="process-number">02</span><div><b>ML sınıflandırma</b><small>Phishing / legitimate tahmini</small></div><span class="step-status">Hazır</span></div><div class="process-step"><span class="process-number">03</span><div><b>SQL kayıt sistemi</b><small>Analiz ve sonuç geçmişi</small></div><span class="step-status" id="db-state">Kontrol</span></div></div>
+            <div class="note-box">Model tahmini bir risk göstergesidir; tek başına kesin güvenlik garantisi değildir.</div>
+          </article>
+        </div>
+        <article class="surface history-surface">
+          <div class="surface-heading history-head"><div><span class="section-index">03 / SON KAYITLAR</span><h3>Son analizler</h3><p>Veritabanındaki en güncel URL analizleri.</p></div><button class="secondary-button" id="refresh-button">↻ Yenile</button></div>
+          <div class="table-wrap"><table><thead><tr><th>URL / DOMAIN</th><th>SONUÇ</th><th>GÜVEN</th><th>SEVİYE</th><th>TARİH</th></tr></thead><tbody id="history-body"><tr><td colspan="5" class="table-message">Kayıtlar yükleniyor…</td></tr></tbody></table></div>
+          <div class="table-footer"><span id="history-count">Kayıtlar yükleniyor…</span><span>Kaynak: PhishGuardDB</span></div>
+        </article>
+      </section>
+      <section class="page-section" id="section-analyze" hidden><div class="page-intro"><span class="section-index">URL GÜVENLİĞİ</span><h1>URL analizi</h1><p>Bir bağlantıyı kontrol etmeden önce makine öğrenmesi modeline analiz ettir.</p></div><div id="analyze-mount"></div></section>
+      <section class="page-section" id="section-history" hidden><div class="page-intro"><span class="section-index">KAYITLAR</span><h1>Analiz geçmişi</h1><p>Bu oturumda ve geçmişte kaydedilen analiz sonuçlarını görüntüle.</p></div><article class="surface"><div class="table-wrap"><table><thead><tr><th>URL / DOMAIN</th><th>SONUÇ</th><th>GÜVEN</th><th>SEVİYE</th><th>TARİH</th></tr></thead><tbody id="history-body-full"><tr><td colspan="5" class="table-message">Kayıtlar yükleniyor…</td></tr></tbody></table></div></article></section>
+      <section class="page-section" id="section-alerts" hidden><div class="page-intro"><span class="section-index">GÜVENLİK MERKEZİ</span><h1>Güvenlik uyarıları</h1><p>Phishing olarak işaretlenen bağlantılar ve risk seviyeleri.</p></div><div id="alerts-list" class="alerts-list"><div class="table-message">Uyarılar yükleniyor…</div></div></section>
+      <footer class="main-footer"><span>© 2026 PhishGuard</span><span>Machine Learning · URL Security</span><a href="/docs">API dokümantasyonu ↗</a></footer>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
