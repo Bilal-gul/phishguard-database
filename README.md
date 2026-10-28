@@ -19,7 +19,7 @@ The project also demonstrates how an ML-powered security application can be supp
 ### User Registration
 
 <p align="center">
-  <img src="screenshots/registration.png" alt="PhishGuard user registration page" width="700">
+  <img src="screenshots/registration.png" alt="PhishGuard user registration page" width="850">
 </p>
 
 ### Safety Warnings
