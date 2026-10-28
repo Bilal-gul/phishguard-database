@@ -3,6 +3,7 @@
 # PYTHON & VIRTUAL ENVIRONMENTS
 # ==========================================
 __pycache__/
+.pytest_cache/
 *.py[cod]
 *.pyd
 .venv/
@@ -49,10 +50,6 @@ Thumbs.db
 check_users.py
 data_audit_and_clean.ipynb
 db.py
-fit.py
-model.py
-model_pipeline.py
-preprocessing.py
 
 # ==========================================
 # DATASETS & INTERMEDIATE ARTIFACTS
