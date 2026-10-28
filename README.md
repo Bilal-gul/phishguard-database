@@ -6,6 +6,42 @@ PhishGuard is a cybersecurity project that analyzes URLs to identify potential p
 
 The project also demonstrates how an ML-powered security application can be supported by a relational database with integrity constraints, stored procedures, triggers, views, and activity logging.
 
+---
+
+## Application Preview
+
+### Home Page
+
+<p align="center">
+  <img src="screenshots/home-page.png" alt="PhishGuard home page" width="850">
+</p>
+
+### User Registration
+
+<p align="center">
+  <img src="screenshots/registration.png" alt="PhishGuard user registration page" width="700">
+</p>
+
+### Safety Warnings
+
+<p align="center">
+  <img src="screenshots/safety-warnings.png" alt="PhishGuard safety warnings" width="850">
+</p>
+
+### Analysis History
+
+<p align="center">
+  <img src="screenshots/analysis-history.png" alt="PhishGuard analysis history" width="850">
+</p>
+
+### Database Entity-Relationship Diagram
+
+<p align="center">
+  <img src="e-r%20diagram/Phishguard_db_diagram.png" alt="PhishGuard database ER diagram" width="900">
+</p>
+
+---
+
 ## Key Features
 
 - **Phishing Detection:** Analyze submitted URLs using a trained machine learning model.
