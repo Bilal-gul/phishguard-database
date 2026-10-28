@@ -37,7 +37,7 @@ The project also demonstrates how an ML-powered security application can be supp
 ### Database Entity-Relationship Diagram
 
 <p align="center">
-  <img src="e-r%20diagram/Phishguard_db_diagram.png" alt="PhishGuard database ER diagram" width="900">
+  <img src="screenshots/Phishguard_db_diagram.png" alt="PhishGuard database ER diagram" width="900">
 </p>
 
 ---
