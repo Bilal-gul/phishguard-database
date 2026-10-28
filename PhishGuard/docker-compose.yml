@@ -14,6 +14,8 @@ services:
       PHISHGUARD_SQL_SERVER: "${PHISHGUARD_SQL_SERVER:-host.docker.internal,1433}"
       PHISHGUARD_SQL_DATABASE: "${PHISHGUARD_SQL_DATABASE:-PhishGuardDB}"
       PHISHGUARD_SQL_AUTH: "${PHISHGUARD_SQL_AUTH:-sql}"
+      # Set to data/runtime_model.joblib to select a verified release model.
+      PHISHGUARD_MODEL_PATH: "${PHISHGUARD_MODEL_PATH:-}"
       PHISHGUARD_SQL_USER: "${PHISHGUARD_SQL_USER:?Set SQL user in .env}"
       PHISHGUARD_SQL_PASSWORD: "${PHISHGUARD_SQL_PASSWORD:?Set SQL password in .env}"
       PHISHGUARD_SESSION_SECRET: "${PHISHGUARD_SESSION_SECRET:?Set session secret in .env}"

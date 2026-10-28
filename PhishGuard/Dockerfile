@@ -27,8 +27,10 @@ RUN python -m pip install --upgrade pip \
 COPY main.py .
 COPY predict.py .
 COPY feature_extractor.py .
+COPY model_artifact.py .
 COPY backend ./backend
 COPY frontend ./frontend
+# .dockerignore limits this copy to inference models; datasets and training artifacts are excluded.
 COPY data ./data
 
 RUN useradd --create-home --uid 10001 appuser \
