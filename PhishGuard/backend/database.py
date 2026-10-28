@@ -49,7 +49,12 @@ def get_connection():
         f"SERVER={_odbc_value(server)}",
         f"DATABASE={_odbc_value(database)}",
         "Encrypt=yes",
-        "TrustServerCertificate=yes",
+        "TrustServerCertificate=" + (
+            "yes"
+            if os.getenv("PHISHGUARD_SQL_TRUST_SERVER_CERTIFICATE", "true").strip().lower()
+            in {"1", "true", "yes"}
+            else "no"
+        ),
     ]
 
     if auth_mode in ("windows", "trusted", "integrated"):
@@ -80,18 +85,18 @@ def get_connection():
 
 
 def check_connection() -> dict:
+    """Check liveness only; preserve identity keys with deliberately null values."""
     connection = get_connection()
 
     try:
         cursor = connection.cursor()
-        cursor.execute("SELECT DB_NAME(), SUSER_SNAME()")
-        database_name, login_name = cursor.fetchone()
-        cursor.close()
+        try:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+        finally:
+            cursor.close()
 
-        return {
-            "connected": True,
-            "database": database_name,
-            "login": login_name,
-        }
+        # Keep the response shape but never return database or login identities.
+        return {"connected": True, "database": None, "login": None}
     finally:
         connection.close()

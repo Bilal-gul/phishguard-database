@@ -1,5 +1,5 @@
 """Pydantic request/response schemas used by the API."""
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class RegisterRequest(BaseModel):
@@ -16,6 +16,13 @@ class LoginRequest(BaseModel):
 class URLAnalysisRequest(BaseModel):
     url: str = Field(..., min_length=1, max_length=2048, description="Analiz edilecek URL")
 
+    @field_validator("url")
+    @classmethod
+    def reject_whitespace_only_url(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("URL cannot be empty or whitespace-only.")
+        return value
+
 
 class URLAnalysisResponse(BaseModel):
     url: str
@@ -26,6 +33,20 @@ class URLAnalysisResponse(BaseModel):
     full_domain: str | None = None
     confidence: float
     database: dict | None = None
+
+
+class DatabaseHealthResponse(BaseModel):
+    """Connection status without exposing database or login identity."""
+
+    connected: bool
+    database: str | None = Field(
+        default=None,
+        description="Always null; database identity is intentionally redacted.",
+    )
+    login: str | None = Field(
+        default=None,
+        description="Always null; login identity is intentionally redacted.",
+    )
 
 
 class HealthResponse(BaseModel):
