@@ -27,9 +27,13 @@ model.py
 model_pipeline.py
 preprocessing.py
 
-# Large datasets: include only the trained model
+# Include only inference artifacts. Datasets and candidate/training outputs stay out.
 data/*
 !data/best_model.pkl
+!data/runtime_model.joblib
+!data/artifacts/
+data/artifacts/*
+!data/artifacts/phishguard_model.joblib
 
 
 # Archive files

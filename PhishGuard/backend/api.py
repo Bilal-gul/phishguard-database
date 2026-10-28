@@ -1,6 +1,7 @@
 """PhishGuard API router: URL prediction, user-scoped history, statistics, and alerts."""
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 import pyodbc
@@ -8,9 +9,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from .auth import get_current_user
 from .database import get_connection
-from .schemas import URLAnalysisRequest
+from .schemas import DatabaseHealthResponse, URLAnalysisRequest
 
 router = APIRouter(tags=["PhishGuard"])
+logger = logging.getLogger("phishguard.api")
 
 
 def _fetchone_from_result_sets(cursor):
@@ -59,10 +61,16 @@ def _get_or_create_domain(cursor, domain_name: str) -> int:
 
 def _prediction_function():
     try:
-        from predict import predict_url
+        try:
+            from PhishGuard.predict import predict_url
+        except ModuleNotFoundError as exc:
+            if exc.name != "PhishGuard":
+                raise
+            from predict import predict_url
         return predict_url
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"predict.py içindeki predict_url yüklenemedi: {exc}") from exc
+        logger.error("Prediction service could not be loaded (%s).", type(exc).__name__)
+        raise HTTPException(status_code=500, detail="Tahmin hizmeti kullanılamıyor.") from exc
 
 
 @router.get("/health")
@@ -70,13 +78,15 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@router.get("/health/database")
+@router.get("/health/database", response_model=DatabaseHealthResponse)
 def database_health() -> dict[str, Any]:
+    """Return connectivity while keeping database and login identity redacted."""
     try:
         from .database import check_connection
         return check_connection()
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"SQL Server bağlantısı başarısız: {exc}") from exc
+        logger.error("Database health check failed (%s).", type(exc).__name__)
+        raise HTTPException(status_code=500, detail="Veritabanı bağlantısı kontrol edilemedi.") from exc
 
 
 @router.post("/predict")
@@ -90,7 +100,8 @@ def predict_url_endpoint(
     except (ValueError, TypeError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"URL tahmini başarısız: {exc}") from exc
+        logger.error("URL prediction failed (%s).", type(exc).__name__)
+        raise HTTPException(status_code=500, detail="URL tahmini başarısız.") from exc
 
     predicted_label = int(result["prediction"])
     confidence_percent = (
@@ -159,7 +170,8 @@ def predict_url_endpoint(
     except Exception as exc:
         if connection is not None:
             connection.rollback()
-        raise HTTPException(status_code=500, detail=f"Tahmin üretildi fakat veritabanına kaydedilemedi: {exc}") from exc
+        logger.error("Prediction persistence failed (%s).", type(exc).__name__)
+        raise HTTPException(status_code=500, detail="Tahmin veritabanına kaydedilemedi.") from exc
     finally:
         if cursor is not None:
             cursor.close()
@@ -207,7 +219,8 @@ def analysis_history(
             items.append(item)
         return {"user_id": int(current_user["user_id"]), "count": len(items), "items": items}
     except pyodbc.Error as exc:
-        raise HTTPException(status_code=500, detail=f"Analiz geçmişi alınamadı: {exc}") from exc
+        logger.error("Analysis history query failed (%s).", type(exc).__name__)
+        raise HTTPException(status_code=500, detail="Analiz geçmişi alınamadı.") from exc
     finally:
         if cursor is not None:
             cursor.close()
@@ -251,7 +264,8 @@ def analysis_stats(current_user: dict[str, Any] = Depends(get_current_user)) -> 
             "unreviewed_alerts": unreviewed,
         }
     except pyodbc.Error as exc:
-        raise HTTPException(status_code=500, detail=f"İstatistikler alınamadı: {exc}") from exc
+        logger.error("Analysis statistics query failed (%s).", type(exc).__name__)
+        raise HTTPException(status_code=500, detail="İstatistikler alınamadı.") from exc
     finally:
         if cursor is not None:
             cursor.close()
@@ -293,7 +307,8 @@ def suspicious_alerts(
             items.append(item)
         return {"user_id": int(current_user["user_id"]), "count": len(items), "items": items}
     except pyodbc.Error as exc:
-        raise HTTPException(status_code=500, detail=f"Şüpheli analizler alınamadı: {exc}") from exc
+        logger.error("Suspicious analysis query failed (%s).", type(exc).__name__)
+        raise HTTPException(status_code=500, detail="Şüpheli analizler alınamadı.") from exc
     finally:
         if cursor is not None:
             cursor.close()

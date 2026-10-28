@@ -9,7 +9,7 @@ model or become the application default automatically.
 | Choice | Artifact | Selection behavior |
 |---|---|---|
 | Legacy model | `data/best_model.pkl` | Existing legacy artifact. Select explicitly with `PHISHGUARD_MODEL_PATH=data/best_model.pkl`. |
-| Optimized18 Random Forest | `data/artifacts/candidates/optimized18-<release-tag>/phishguard_optimized18.joblib` | Optional release asset. Select explicitly with `PHISHGUARD_MODEL_PATH` after downloading and verifying it. |
+| Optimized18 Random Forest | `data/runtime_model.joblib` | Optional release asset. Select explicitly with `PHISHGUARD_MODEL_PATH` after downloading and verifying it. |
 
 When `PHISHGUARD_MODEL_PATH` is unset, the current application first looks for
 `data/artifacts/phishguard_model.joblib`; if that file is absent, it falls
@@ -59,15 +59,16 @@ test metrics are the recorded final evaluation, not the selection criterion.
 - Asset filename: `phishguard_optimized18.joblib`
 
 After the release tag and URL are confirmed and the asset is published, download
-the asset from that release into a version-specific directory under
-`PhishGuard/data/artifacts/candidates/`. For example, from the `PhishGuard/`
-directory in PowerShell:
+the asset directly into the stable runtime slot `PhishGuard/data/runtime_model.joblib`.
+This path is allowed into the Docker build context; datasets, splits, and
+candidate-training directories remain excluded. From the `PhishGuard/` directory
+in PowerShell:
 
 ```powershell
 $releaseAssetUrl = '<RELEASE_ASSET_URL_PENDING_CONFIRMATION>'
-$candidateDir = 'data/artifacts/candidates/optimized18-<confirmed-release-tag>'
-New-Item -ItemType Directory -Force -Path $candidateDir | Out-Null
-Invoke-WebRequest -Uri $releaseAssetUrl -OutFile "$candidateDir/phishguard_optimized18.joblib"
+$artifact = 'data/runtime_model.joblib'
+if (Test-Path -LiteralPath $artifact) { throw 'Runtime model already exists; do not overwrite it.' }
+Invoke-WebRequest -Uri $releaseAssetUrl -OutFile $artifact
 ```
 
 Do not use the placeholder URL or tag literally. Obtain both from the confirmed
@@ -86,7 +87,7 @@ From `PhishGuard/`, compute and compare the checksum in PowerShell:
 
 ```powershell
 $expected = '1BA5A583D0A4ECE1CA69B4B444DEF82E67ACC198499627A21B154FD5EE7968C0'
-$artifact = 'data/artifacts/candidates/optimized18-<confirmed-release-tag>/phishguard_optimized18.joblib'
+$artifact = 'data/runtime_model.joblib'
 $actual = (Get-FileHash -Algorithm SHA256 $artifact).Hash
 if ($actual -ne $expected) { throw 'SHA-256 mismatch; do not load this artifact.' }
 ```
@@ -99,7 +100,7 @@ load only this trusted, checksum-verified release asset.
 For Docker Compose, set this in the local, untracked `PhishGuard/.env` file:
 
 ```dotenv
-PHISHGUARD_MODEL_PATH=data/artifacts/candidates/optimized18-<confirmed-release-tag>/phishguard_optimized18.joblib
+PHISHGUARD_MODEL_PATH=data/runtime_model.joblib
 ```
 
 The Compose service passes this value to the application, where relative model
@@ -115,7 +116,7 @@ For a local PowerShell process started from `PhishGuard/`, set the same relative
 path before launching the application:
 
 ```powershell
-$env:PHISHGUARD_MODEL_PATH = 'data/artifacts/candidates/optimized18-<confirmed-release-tag>/phishguard_optimized18.joblib'
+$env:PHISHGUARD_MODEL_PATH = 'data/runtime_model.joblib'
 python -m uvicorn main:app --reload --env-file .env
 ```
 

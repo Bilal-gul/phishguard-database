@@ -8,6 +8,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
+import logging
 import os
 import re
 import secrets
@@ -26,6 +27,7 @@ auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
 COOKIE_NAME = "phishguard_session"
 SESSION_TTL_SECONDS = 60 * 60 * 12  # 12 hours
 COOKIE_SECURE = os.getenv("PHISHGUARD_COOKIE_SECURE", "false").lower() in {"1", "true", "yes"}
+logger = logging.getLogger("phishguard.auth")
 
 
 def _load_session_secret() -> bytes:
@@ -55,6 +57,8 @@ def _load_session_secret() -> bytes:
                 pass
         except FileExistsError:
             secret = secret_path.read_text(encoding="utf-8").strip()
+            if len(secret) < 64:
+                raise RuntimeError("Local session secret file is invalid.")
         return secret.encode("utf-8")
     except OSError as exc:
         raise RuntimeError(
@@ -180,7 +184,8 @@ def get_current_user(request: Request) -> dict[str, Any]:
     except HTTPException:
         raise
     except pyodbc.Error as exc:
-        raise HTTPException(status_code=500, detail=f"Oturum doğrulanamadı: {exc}") from exc
+        logger.error("Session verification failed (%s).", type(exc).__name__)
+        raise HTTPException(status_code=500, detail="Oturum doğrulanamadı.") from exc
     finally:
         if cursor is not None:
             cursor.close()
@@ -255,7 +260,8 @@ def register(request: RegisterRequest) -> dict[str, Any]:
     except (pyodbc.Error, RuntimeError) as exc:
         if connection is not None:
             connection.rollback()
-        raise HTTPException(status_code=500, detail=f"Hesap oluşturulamadı: {exc}") from exc
+        logger.error("Account registration failed (%s).", type(exc).__name__)
+        raise HTTPException(status_code=500, detail="Hesap oluşturulamadı.") from exc
     finally:
         if cursor is not None:
             cursor.close()
@@ -317,7 +323,8 @@ def login(request: LoginRequest, response: Response) -> dict[str, Any]:
     except (pyodbc.Error, RuntimeError) as exc:
         if connection is not None:
             connection.rollback()
-        raise HTTPException(status_code=500, detail=f"Giriş yapılamadı: {exc}") from exc
+        logger.error("Login failed (%s).", type(exc).__name__)
+        raise HTTPException(status_code=500, detail="Giriş yapılamadı.") from exc
     finally:
         if cursor is not None:
             cursor.close()
@@ -337,6 +344,7 @@ def logout(request: Request, response: Response) -> dict[str, bool]:
         try:
             user_id, session_id = _read_cookie_token(token)
             connection = get_connection()
+            cursor = None
             try:
                 cursor = connection.cursor()
                 cursor.execute(
@@ -353,13 +361,15 @@ def logout(request: Request, response: Response) -> dict[str, bool]:
                     user_id,
                 )
                 connection.commit()
-                cursor.close()
             finally:
+                if cursor is not None:
+                    cursor.close()
                 connection.close()
         except HTTPException:
             # Always clear a malformed/expired cookie.
             pass
         except pyodbc.Error as exc:
-            raise HTTPException(status_code=500, detail=f"Oturum kapatılamadı: {exc}") from exc
+            logger.error("Logout persistence failed (%s).", type(exc).__name__)
+            raise HTTPException(status_code=500, detail="Oturum kapatılamadı.") from exc
     _clear_session_cookie(response)
     return {"ok": True}
